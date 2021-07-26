@@ -26,13 +26,13 @@ export const bigNumberWithDecimalToStr = (n: BigNumber, d: number): string => {
     .join('');
 };
 
-// a nice way to represent the token without carrying around as a string
-export interface Token {
+// a nice way to represent the token value without carrying around as a string
+export interface TokenValue {
   value: BigNumber;
   decimals: number;
 }
 
 // we should turn Token into a string when we return as a value in an API call
-export const tokenToStr = (t: Token): string => {
+export const tokenValueToString = (t: TokenValue): string => {
   return bigNumberWithDecimalToStr(t.value, t.decimals);
 };

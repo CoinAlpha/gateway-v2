@@ -2,7 +2,7 @@ import { BigNumber, Contract, providers, Wallet } from 'ethers';
 import abi from './ethereum.abi.json';
 import axios from 'axios';
 import fs from 'fs';
-import { Token } from './base';
+import { TokenValue } from './base';
 
 // the receipt from a transaction
 export interface EthTransactionReceipt {
@@ -14,7 +14,7 @@ export interface EthTransactionReceipt {
 }
 
 // information about an Ethereum token
-export interface TokenInfo {
+export interface Token {
   chainID: number;
   address: string;
   name: string;
@@ -27,8 +27,8 @@ type TokenListType = 'FILE' | 'URL';
 
 export class EthereumBase {
   private readonly provider;
-  private tokenList: TokenInfo[] = [];
-  private tokenMap: Record<string, TokenInfo> = {};
+  private tokenList: Token[] = [];
+  private tokenMap: Record<string, Token> = {};
 
   public chainID;
   public rpcUrl;
@@ -53,11 +53,11 @@ export class EthereumBase {
     })();
   }
 
-  // returns a TokenInfos for a given list source and list type
+  // returns a Tokens for a given list source and list type
   async getTokenList(
     tokenListSource: string,
     tokenListType: TokenListType
-  ): Promise<TokenInfo[]> {
+  ): Promise<Token[]> {
     if (tokenListType === 'URL') {
       const { data } = await axios.get(tokenListSource);
       return data;
@@ -67,7 +67,7 @@ export class EthereumBase {
   }
 
   // return the Token object for a symbol
-  getTokenForSymbol(symbol: string): TokenInfo | null {
+  getTokenForSymbol(symbol: string): Token | null {
     if (this.tokenMap[symbol]) {
       return this.tokenMap[symbol];
     }
@@ -85,7 +85,7 @@ export class EthereumBase {
   }
 
   // returns the ETH balance, convert BigNumber to string
-  async getEthBalance(wallet: Wallet): Promise<Token> {
+  async getEthBalance(wallet: Wallet): Promise<TokenValue> {
     try {
       const balance = await wallet.getBalance();
       return { value: balance, decimals: 18 };
@@ -99,7 +99,7 @@ export class EthereumBase {
     wallet: Wallet,
     tokenAddress: string,
     decimals: number
-  ): Promise<Token> {
+  ): Promise<TokenValue> {
     // instantiate a contract and pass in provider for read-only access
     const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
     try {
@@ -118,7 +118,7 @@ export class EthereumBase {
     spender: string,
     tokenAddress: string,
     decimals: number
-  ): Promise<Token> {
+  ): Promise<TokenValue> {
     // instantiate a contract and pass in provider for read-only access
     const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
     try {
