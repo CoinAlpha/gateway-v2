@@ -27,7 +27,7 @@ type TokenListType = 'FILE' | 'URL';
 
 export class EthereumBase {
   private readonly provider;
-  private tokenList: TokenInfo[] | null = null;
+  private tokenList: TokenInfo[] = [];
   private tokenMap: Record<string, TokenInfo> = {};
 
   public chainID;
