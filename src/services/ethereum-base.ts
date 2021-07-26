@@ -98,7 +98,7 @@ export class EthereumBase {
   async getERC20Balance(
     wallet: Wallet,
     tokenAddress: string,
-    decimals = 18
+    decimals: number
   ): Promise<Token> {
     // instantiate a contract and pass in provider for read-only access
     const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
@@ -117,7 +117,7 @@ export class EthereumBase {
     wallet: Wallet,
     spender: string,
     tokenAddress: string,
-    decimals = 18
+    decimals: number
   ): Promise<Token> {
     // instantiate a contract and pass in provider for read-only access
     const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
