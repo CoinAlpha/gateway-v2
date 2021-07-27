@@ -22,6 +22,9 @@ export interface Token {
   decimals: number;
 }
 
+// MKR does not match the ERC20 perfectly so we need to use a separate ABI.
+const MKR_ADDRESS = '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2';
+
 // the type of information source for tokens
 type TokenListType = 'FILE' | 'URL';
 
@@ -101,7 +104,12 @@ export class EthereumBase {
     decimals: number
   ): Promise<TokenValue> {
     // instantiate a contract and pass in provider for read-only access
-    const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
+    let contract;
+    if (tokenAddress === MKR_ADDRESS) {
+      contract = new Contract(tokenAddress, abi.MKRAbi, this.provider);
+    } else {
+      contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
+    }
     try {
       const balance = await contract.balanceOf(wallet.address);
       return { value: balance, decimals: decimals };
@@ -120,7 +128,12 @@ export class EthereumBase {
     decimals: number
   ): Promise<TokenValue> {
     // instantiate a contract and pass in provider for read-only access
-    const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
+    let contract;
+    if (tokenAddress === MKR_ADDRESS) {
+      contract = new Contract(tokenAddress, abi.MKRAbi, this.provider);
+    } else {
+      contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
+    }
     try {
       const allowance = await contract.allowance(wallet.address, spender);
       return { value: allowance, decimals: decimals };
@@ -158,7 +171,13 @@ export class EthereumBase {
   ): Promise<boolean> {
     try {
       // instantiate a contract and pass in wallet, which act on behalf of that signer
-      const contract = new Contract(tokenAddress, abi.ERC20Abi, wallet);
+      let contract;
+      if (tokenAddress === MKR_ADDRESS) {
+        contract = new Contract(tokenAddress, abi.MKRAbi, wallet);
+      } else {
+        contract = new Contract(tokenAddress, abi.ERC20Abi, wallet);
+      }
+
       return await contract.approve(spender, amount);
     } catch (err) {
       throw new Error(err.reason || 'error approval');
