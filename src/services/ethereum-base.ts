@@ -33,7 +33,7 @@ export class EthereumBase {
   private tokenList: Token[] = [];
   private tokenMap: Record<string, Token> = {};
   // there are async values set in the constructor
-  private ready: boolean = false;
+  private _ready: boolean = false;
 
   public chainID;
   public rpcUrl;
@@ -55,12 +55,12 @@ export class EthereumBase {
       this.tokenList.forEach((token) => {
         this.tokenMap[token.symbol] = token;
       });
-      this.ready = true;
+      this._ready = true;
     })();
   }
 
-  isReady(): boolean {
-    return this.ready;
+  ready(): boolean {
+    return this._ready;
   }
 
   // returns a Tokens for a given list source and list type
