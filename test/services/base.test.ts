@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers';
-import { bigNumberWithDecimalToStr } from '../../src/services/ethereum-base';
+import { bigNumberWithDecimalToStr } from '../../src/services/base';
 import 'jest-extended';
 
 test('bigNumberWithDecimalToStr', () => {
