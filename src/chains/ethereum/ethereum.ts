@@ -3,13 +3,10 @@ import { EthereumBase } from '../../services/ethereum-base';
 import { ConfigManager } from '../../services/config-manager';
 import { EthereumConfig } from './ethereum.config';
 
-// chainId
-// rpcUrl
-// tokenListType
-// tokenListSource
-
 export class Ethereum extends EthereumBase {
-  private ethGasStationUrl;
+  private ethGasStationUrl: string;
+  private gasPrice: number;
+  private gasPriceLastUpdated: Date | null;
 
   constructor() {
     let config;
@@ -24,19 +21,42 @@ export class Ethereum extends EthereumBase {
       config.rpcUrl,
       config.tokenListSource,
       config.tokenListType,
-      0
+      ConfigManager.config.ETH_MANUAL_GAS_PRICE
     );
 
     this.ethGasStationUrl =
       'https://ethgasstation.info/api/ethgasAPI.json?api-key=' +
       ConfigManager.config.ETH_GAS_STATION_API_KEY;
+
+    this.gasPrice = ConfigManager.config.ETH_MANUAL_GAS_PRICE;
+    this.gasPriceLastUpdated = null;
+
+    this.updateGasPrice();
   }
 
-  async getGasPrice(): Promise<number> {
-    const { data } = await axios.get(this.ethGasStationUrl);
+  // If ConfigManager.config.ETH_GAS_STATION_ENABLE is true this will
+  // continually update the gas price.
+  async updateGasPrice(): Promise<void> {
+    if (ConfigManager.config.ETH_GAS_STATION_ENABLE) {
+      const { data } = await axios.get(this.ethGasStationUrl);
 
-    // divide by 10 to convert it to Gwei
-    const gasPrice = data[ConfigManager.config.ETH_GAS_STATION_GAS_LEVEL] / 10;
-    return gasPrice;
+      // divide by 10 to convert it to Gwei
+      this.gasPrice = data[ConfigManager.config.ETH_GAS_STATION_GAS_LEVEL] / 10;
+      this.gasPriceLastUpdated = new Date();
+
+      setTimeout(
+        this.updateGasPrice.bind(this),
+        ConfigManager.config.ETH_GAS_STATION_REFRESH_TIME * 1000
+      );
+    }
+  }
+
+  getGasPrice(): number {
+    return this.gasPrice;
+  }
+
+  // returns null if the gasPrice is manually set
+  getGasPriceLastDated(): Date | null {
+    return this.gasPriceLastUpdated;
   }
 }

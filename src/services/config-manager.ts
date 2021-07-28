@@ -40,7 +40,7 @@ export namespace ConfigManager {
     );
   }
 
-  export const configFilePath = './src/gateway-config.yml';
+  export const configFilePath: string = './src/gateway-config.yml';
   export let config: Config;
   reloadConfig();
 
@@ -50,7 +50,9 @@ export namespace ConfigManager {
     if (typeof x === 'object' && validateConfig(x)) {
       config = x;
     } else {
-      throw new Error('');
+      throw new Error(
+        configFilePath + ' does not conform to the expected YAML structure.'
+      );
     }
   }
 

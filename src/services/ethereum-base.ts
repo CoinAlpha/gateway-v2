@@ -72,9 +72,8 @@ export class EthereumBase {
     return null;
   }
 
-  // returns the gas price, defined as a promise because we need to override it
-  // in ethereum and get the data from a URL.
-  async getGasPrice(): Promise<number> {
+  // returns the gas price.
+  getGasPrice(): number {
     return this.gasPriceConstant;
   }
 

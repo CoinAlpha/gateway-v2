@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add a Config type to ConfigManager.
 
+- Ethereum extends EthereumBase and has custom behavior for the ethereum gas price.
 
 
 ## [0.1.1] - 2021-07-26
