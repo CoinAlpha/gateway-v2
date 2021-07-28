@@ -2,16 +2,7 @@ import { BigNumber, Contract, providers, Wallet } from 'ethers';
 import abi from './ethereum.abi.json';
 import axios from 'axios';
 import fs from 'fs';
-import { TokenValue } from './base';
-
-// the receipt from a transaction
-export interface EthTransactionReceipt {
-  gasUsed: number;
-  blockNumber: number;
-  confirmations: number;
-  status: number;
-  logs: Array<providers.Log>;
-}
+import { TokenListType, TokenValue } from './base';
 
 // information about an Ethereum token
 export interface Token {
@@ -24,9 +15,6 @@ export interface Token {
 
 // MKR does not match the ERC20 perfectly so we need to use a separate ABI.
 const MKR_ADDRESS = '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2';
-
-// the type of information source for tokens
-type TokenListType = 'FILE' | 'URL';
 
 export class EthereumBase {
   private readonly provider;
@@ -149,24 +137,18 @@ export class EthereumBase {
     }
   }
 
-  // returns TxReceipt for a txHash
-  async getTransactionReceipt(txHash: string): Promise<EthTransactionReceipt> {
-    const transaction = await this.provider.getTransactionReceipt(txHash);
+  // returns an ethereum TransactionResponse for a txHash.
+  async getTransaction(
+    txHash: string
+  ): Promise<providers.TransactionResponse | null> {
+    return this.provider.getTransaction(txHash);
+  }
 
-    let gasUsed;
-    if (transaction.gasUsed) {
-      gasUsed = transaction.gasUsed.toNumber();
-    } else {
-      gasUsed = 0;
-    }
-
-    return {
-      gasUsed: gasUsed,
-      blockNumber: transaction.blockNumber,
-      confirmations: transaction.confirmations,
-      status: transaction.status || 0,
-      logs: transaction.logs,
-    };
+  // returns an ethereum TransactionReceipt for a txHash if the transaction has been mined.
+  async getTransactionReceipt(
+    txHash: string
+  ): Promise<providers.TransactionReceipt | null> {
+    return this.provider.getTransactionReceipt(txHash);
   }
 
   // adds allowance by spender to transfer the given amount of Token

@@ -1,29 +1,32 @@
-type TokenListType = 'FILE' | 'URL';
+import { TokenListType } from '../../services/base';
 
-export interface Config {
-  chainId: number;
-  rpcUrl: string;
-  tokenListType: TokenListType;
-  tokenList: string;
+export namespace EthereumConfig {
+  export interface NetworkConfig {
+    chainId: number;
+    rpcUrl: string;
+    tokenListType: TokenListType;
+    tokenListSource: string;
+  }
+
+  export interface Config {
+    mainnet: NetworkConfig;
+    kovan: NetworkConfig;
+  }
+
+  export const config: Config = {
+    mainnet: {
+      chainId: 1,
+      rpcUrl: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+
+      tokenListSource:
+        'https://wispy-bird-88a7.uniswap.workers.dev/?url=http://tokens.1inch.eth.link',
+      tokenListType: 'URL',
+    },
+    kovan: {
+      chainId: 42,
+      rpcUrl: `https://kovan.infura.io/v3/${process.env.INFURA_KEY}`,
+      tokenListSource: 'src/chains/ethereum/erc20_tokens_kovan.json',
+      tokenListType: 'FILE',
+    },
+  };
 }
-
-export interface EthereumConfig {
-  mainnet: Config;
-  kovan: Config;
-}
-
-export const ethereumConfig: EthereumConfig = {
-  mainnet: {
-    chainId: 1,
-    rpcUrl: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
-    tokenListType: 'URL',
-    tokenList:
-      'https://wispy-bird-88a7.uniswap.workers.dev/?url=http://tokens.1inch.eth.link',
-  },
-  kovan: {
-    chainId: 42,
-    rpcUrl: `https://kovan.infura.io/v3/${process.env.INFURA_KEY}`,
-    tokenListType: 'URL',
-    tokenList: '',
-  },
-};
