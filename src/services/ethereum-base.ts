@@ -15,7 +15,7 @@ export interface Token {
 
 export class EthereumBase {
   protected readonly provider;
-  private tokenList: Token[] = [];
+  protected tokenList: Token[] = [];
   private tokenMap: Record<string, Token> = {};
   // there are async values set in the constructor
   private _ready: boolean = false;

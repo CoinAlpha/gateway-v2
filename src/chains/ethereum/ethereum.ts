@@ -1,7 +1,7 @@
 import abi from '../../services/ethereum.abi.json';
 import axios from 'axios';
 import { BigNumber, Contract, Wallet } from 'ethers';
-import { EthereumBase } from '../../services/ethereum-base';
+import { EthereumBase, Token } from '../../services/ethereum-base';
 import { ConfigManager } from '../../services/config-manager';
 import { EthereumConfig } from './ethereum.config';
 import { TokenValue } from '../../services/base';
@@ -26,7 +26,7 @@ export class Ethereum extends EthereumBase {
       config.chainId,
       config.rpcUrl,
       config.tokenListSource,
-      config.tokenListType,
+      'URL',
       ConfigManager.config.ETH_MANUAL_GAS_PRICE
     );
 
@@ -38,6 +38,13 @@ export class Ethereum extends EthereumBase {
     this.gasPriceLastUpdated = null;
 
     this.updateGasPrice();
+  }
+
+  // ethereum token lists are large. instead of reloading each time with
+  // getTokenList, we can read the stored tokenList value from when the
+  // object was initiated.
+  getStoredTokenList(): Token[] {
+    return this.tokenList;
   }
 
   // If ConfigManager.config.ETH_GAS_STATION_ENABLE is true this will
