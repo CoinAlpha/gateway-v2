@@ -1,9 +1,10 @@
 import { Wallet } from 'ethers';
-import { Router, Request, Response } from 'express';
+import { NextFunction, Router, Request, Response } from 'express';
 import { Ethereum } from './ethereum';
 import { EthereumConfig } from './ethereum.config';
 import { ConfigManager } from '../../services/config-manager';
 import { Token } from '../../services/ethereum-base';
+import { HttpException } from '../../services/error-handler';
 import {
   TokenValue,
   latency,
@@ -47,11 +48,17 @@ export namespace EthereumRoutes {
     '/balances',
     async (
       req: Request<{}, {}, EthereumBalanceRequest>,
-      res: Response<EthereumBalanceResponse | string, {}>
+      res: Response<EthereumBalanceResponse | string, {}>,
+      _next: NextFunction
     ) => {
       const initTime = Date.now();
 
-      const wallet: Wallet = ethereum.getWallet(req.body.privateKey);
+      let wallet: Wallet;
+      try {
+        wallet = ethereum.getWallet(req.body.privateKey);
+      } catch (err) {
+        throw new HttpException(500, 'Error getting wallet ' + err);
+      }
 
       const tokenContractList: Record<string, Token> = {};
 
@@ -89,52 +96,78 @@ export namespace EthereumRoutes {
     }
   );
 
-  router.post('/approve', async (req: Request, res: Response) => {
-    const initTime = Date.now();
-    const spender: string = req.body.connector;
-    if (ethereum.approvedSpenders.some((s) => s === spender)) {
-      // Getting Wallet
-      try {
-        const wallet = ethereum.getWallet(req.body.privateKey);
+  interface EthereumApproveRequest {
+    amount?: string;
+    privateKey: string;
+    spender: string;
+    token: string;
+  }
 
-        // Getting token info
-        const token = ethereum.getTokenBySymbol(req.body.token);
+  interface EthereumApproveResponse {
+    network: string;
+    timestamp: number;
+    latency: number;
+    tokenAddress: string;
+    spender: string;
+    amount: string;
+    approval: boolean | string;
+  }
 
-        if (!token) {
-          res.status(500).send(`Token "${req.body.token}" is not supported`);
-        } else {
-          let amount = ethers.constants.MaxUint256;
-          if (req.body.amount) {
-            amount = ethers.utils.parseUnits(req.body.amount, token.decimals);
-          }
-          // call approve function
-          let approval;
-          try {
-            approval = await ethereum.approveERC20(
-              wallet,
-              spender,
-              token.address,
-              amount
-            );
-          } catch (err) {
-            approval = err;
-          }
+  router.post(
+    '/approve',
+    async (
+      req: Request<{}, {}, EthereumApproveRequest>,
+      res: Response<EthereumApproveResponse | string, {}>
+    ) => {
+      const initTime = Date.now();
+      const spender: string = req.body.spender;
 
-          res.status(200).json({
-            network: ConfigManager.config.ETHEREUM_CHAIN,
-            timestamp: initTime,
-            latency: latency(initTime, Date.now()),
-            tokenAddress: token.address,
-            spender: spender,
-            amount: bigNumberWithDecimalToStr(amount, token.decimals),
-            approval: approval,
-          });
-        }
-      } catch (err) {
-        res.status(500).send('Error getting wallet');
+      if (!ethereum.approvedSpenders.some((s) => s === spender)) {
+        throw new HttpException(500, 'Unapproved ERC20 spender ' + spender);
       }
-    } else {
-      res.status(500).send('Error getting wallet');
+
+      let wallet: Wallet;
+      try {
+        wallet = ethereum.getWallet(req.body.privateKey);
+      } catch (err) {
+        throw new HttpException(500, 'Error getting wallet ' + err);
+      }
+
+      const token = ethereum.getTokenBySymbol(req.body.token);
+
+      if (!token) {
+        throw new HttpException(
+          500,
+          `Token "${req.body.token}" is not supported`
+        );
+      }
+
+      let amount = ethers.constants.MaxUint256;
+      if (req.body.amount) {
+        amount = ethers.utils.parseUnits(req.body.amount, token.decimals);
+      }
+      // call approve function
+      let approval;
+      try {
+        approval = await ethereum.approveERC20(
+          wallet,
+          spender,
+          token.address,
+          amount
+        );
+      } catch (err) {
+        approval = err;
+      }
+
+      res.status(200).json({
+        network: ConfigManager.config.ETHEREUM_CHAIN,
+        timestamp: initTime,
+        latency: latency(initTime, Date.now()),
+        tokenAddress: token.address,
+        spender: spender,
+        amount: bigNumberWithDecimalToStr(amount, token.decimals),
+        approval: approval,
+      });
     }
-  });
+  );
 }
