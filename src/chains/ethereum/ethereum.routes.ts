@@ -170,4 +170,38 @@ export namespace EthereumRoutes {
       });
     }
   );
+
+  interface EthereumPollRequest {
+    txHash: string;
+  }
+
+  interface EthereumPollResponse {
+    network: string;
+    timestamp: number;
+    latency: number;
+    txHash: string;
+    confirmed: boolean;
+    receipt: ethers.providers.TransactionReceipt | null;
+  }
+
+  router.post(
+    '/poll',
+    async (
+      req: Request<{}, {}, EthereumPollRequest>,
+      res: Response<EthereumPollResponse, {}>
+    ) => {
+      const initTime = Date.now();
+      const receipt = await ethereum.getTransactionReceipt(req.body.txHash);
+      const confirmed = receipt && receipt.blockNumber ? true : false;
+
+      res.status(200).json({
+        network: ConfigManager.config.ETHEREUM_CHAIN,
+        timestamp: initTime,
+        latency: latency(initTime, Date.now()),
+        txHash: req.body.txHash,
+        confirmed,
+        receipt: receipt,
+      });
+    }
+  );
 }
