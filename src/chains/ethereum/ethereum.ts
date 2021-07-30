@@ -26,7 +26,7 @@ export class Ethereum extends EthereumBase {
       config.chainId,
       config.rpcUrl,
       config.tokenListSource,
-      'URL',
+      config.tokenListType,
       ConfigManager.config.ETH_MANUAL_GAS_PRICE
     );
 
