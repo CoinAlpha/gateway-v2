@@ -17,16 +17,15 @@ export namespace EthereumConfig {
     mainnet: {
       chainId: 1,
       rpcUrl: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
-
+      tokenListType: 'URL',
       tokenListSource:
         'https://wispy-bird-88a7.uniswap.workers.dev/?url=http://tokens.1inch.eth.link',
-      tokenListType: 'URL',
     },
     kovan: {
       chainId: 42,
       rpcUrl: `https://kovan.infura.io/v3/${process.env.INFURA_KEY}`,
-      tokenListSource: 'src/chains/ethereum/erc20_tokens_kovan.json',
       tokenListType: 'FILE',
+      tokenListSource: 'src/chains/ethereum/erc20_tokens_kovan.json',
     },
   };
 }
