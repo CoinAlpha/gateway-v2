@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.3] - 2021-07-29
 
+### Added
+
+- Added ethereum routes:
+  - `/eth`
+  - `/eth/balances`
+  - `/eth/approve`
+  - `/eth/poll`
+
+- Simple express error handler (to be improved in future PRs)
+
+- Add approvedSpenders to Ethereum.
+
+- Add getTokenBySymbol to Ethereum.
+
 ## [0.1.2] - 2021-07-27
 
 ### Added
