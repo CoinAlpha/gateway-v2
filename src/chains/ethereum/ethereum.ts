@@ -108,6 +108,7 @@ export class Ethereum extends EthereumBase {
     } else {
       contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
     }
+
     try {
       const balance = await contract.balanceOf(wallet.address);
       return { value: balance, decimals: decimals };
@@ -167,11 +168,11 @@ export class Ethereum extends EthereumBase {
 
     let tokenContractAddress = undefined;
     for (var i = 0; i < this.tokenList.length; i++) {
-        const token: Token = this.tokenList[i];
-        if (token.symbol === symbol) {
-            tokenContractAddress = token;
-            break;
-        }
+      const token: Token = this.tokenList[i];
+      if (token.symbol === symbol) {
+        tokenContractAddress = token;
+        break;
+      }
     }
     return tokenContractAddress;
   }
