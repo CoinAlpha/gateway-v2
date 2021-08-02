@@ -22,6 +22,4 @@ app.get('/', (_req: Request, res: Response) => {
   res.send('ok');
 });
 
-
-
 export default app;

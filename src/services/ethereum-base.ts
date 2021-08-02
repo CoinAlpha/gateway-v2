@@ -37,9 +37,10 @@ export class EthereumBase {
     this.gasPriceConstant = gasPriceConstant;
     (async () => {
       this.tokenList = await this.getTokenList(tokenListSource, tokenListType);
-      this.tokenList.forEach((token) => {
+        for (var i = 0; i < this.tokenList.length; i++) {
+            const token: Token = this.tokenList[i];
         this.tokenMap[token.symbol] = token;
-      });
+      }
       this._ready = true;
     })();
   }
@@ -57,7 +58,7 @@ export class EthereumBase {
       const { data } = await axios.get(tokenListSource);
       return data;
     } else {
-      return JSON.parse(fs.readFileSync(tokenListSource, 'utf8'));
+      return JSON.parse(fs.readFileSync(tokenListSource, 'utf8')).tokens;
     }
   }
 

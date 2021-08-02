@@ -62,13 +62,14 @@ export namespace EthereumRoutes {
 
       const tokenContractList: Record<string, Token> = {};
 
-      for (const symbol of req.body.tokenSymbols) {
-        const tokenContractInfo = ethereum.getTokenBySymbol(symbol);
-        if (!tokenContractInfo) {
+        for (var i = 0; i < req.body.tokenSymbols.length; i++) {
+            const symbol =  req.body.tokenSymbols[i];
+        const token = ethereum.getTokenBySymbol(symbol);
+        if (!token) {
           continue;
         }
 
-        tokenContractList[symbol] = tokenContractInfo;
+        tokenContractList[symbol] = token;
       }
 
       const balances: Record<string, TokenValue> = {};

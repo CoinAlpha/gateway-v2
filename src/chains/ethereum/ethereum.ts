@@ -16,7 +16,8 @@ const BALANCER_KOVAN_ADDRESS = '0x4e67bf5bD28Dd4b570FBAFe11D0633eCbA2754Ec';
 // Uniswap addresses
 const UNISWAP_ROUTER_ADDRESS = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
 const UNISWAP_V3_ROUTER_ADDRESS = '0xE592427A0AEce92De3Edee1F18E0157C05861564';
-const UNISWAP_V3_NFT_MANAGER_ADDRESS = '0xC36442b4a4522E871399CD717aBDD847Ab11FE88';
+const UNISWAP_V3_NFT_MANAGER_ADDRESS =
+  '0xC36442b4a4522E871399CD717aBDD847Ab11FE88';
 
 export class Ethereum extends EthereumBase {
   private ethGasStationUrl: string;
@@ -25,18 +26,18 @@ export class Ethereum extends EthereumBase {
   private _approvedSpenders: string[];
 
   constructor() {
-      let config, otherApprovedSpenders;
+    let config, otherApprovedSpenders;
     if (ConfigManager.config.ETHEREUM_CHAIN === 'mainnet') {
-        config = EthereumConfig.config.mainnet;
-        otherApprovedSpenders = [BALANCER_MAINNET_ADDRESS];
+      config = EthereumConfig.config.mainnet;
+      otherApprovedSpenders = [BALANCER_MAINNET_ADDRESS];
     } else {
-        config = EthereumConfig.config.kovan;
-        otherApprovedSpenders = [BALANCER_KOVAN_ADDRESS];
+      config = EthereumConfig.config.kovan;
+      otherApprovedSpenders = [BALANCER_KOVAN_ADDRESS];
     }
 
     super(
       config.chainId,
-      config.rpcUrl,
+      config.rpcUrl + ConfigManager.config.INFURA_KEY,
       config.tokenListSource,
       config.tokenListType,
       ConfigManager.config.ETH_MANUAL_GAS_PRICE
@@ -52,7 +53,7 @@ export class Ethereum extends EthereumBase {
       UNISWAP_ROUTER_ADDRESS,
       UNISWAP_V3_ROUTER_ADDRESS,
       UNISWAP_V3_NFT_MANAGER_ADDRESS,
-    ].concat( otherApprovedSpenders);
+    ].concat(otherApprovedSpenders);
 
     this.updateGasPrice();
   }
@@ -163,10 +164,15 @@ export class Ethereum extends EthereumBase {
 
   getTokenBySymbol(tokenSymbol: string): Token | undefined {
     const symbol = tokenSymbol.toUpperCase();
-    const tokenContractAddress = this.tokenList.find((token: Token) => {
-      return token.symbol === symbol;
-    });
 
+    let tokenContractAddress = undefined;
+    for (var i = 0; i < this.tokenList.length; i++) {
+        const token: Token = this.tokenList[i];
+        if (token.symbol === symbol) {
+            tokenContractAddress = token;
+            break;
+        }
+    }
     return tokenContractAddress;
   }
 }
