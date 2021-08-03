@@ -121,10 +121,6 @@ export namespace EthereumRoutes {
       const initTime = Date.now();
       const spender: string = req.body.spender;
 
-      if (!ethereum.approvedSpenders.some((s) => s === spender)) {
-        throw new HttpException(500, 'Unapproved ERC20 spender ' + spender);
-      }
-
       let wallet: Wallet;
       try {
         wallet = ethereum.getWallet(req.body.privateKey);

@@ -9,30 +9,17 @@ import { TokenValue } from '../../services/base';
 // MKR does not match the ERC20 perfectly so we need to use a separate ABI.
 const MKR_ADDRESS = '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2';
 
-// Balancer addresses
-const BALANCER_MAINNET_ADDRESS = '0x3E66B66Fd1d0b02fDa6C811Da9E0547970DB2f21';
-const BALANCER_KOVAN_ADDRESS = '0x4e67bf5bD28Dd4b570FBAFe11D0633eCbA2754Ec';
-
-// Uniswap addresses
-const UNISWAP_ROUTER_ADDRESS = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
-const UNISWAP_V3_ROUTER_ADDRESS = '0xE592427A0AEce92De3Edee1F18E0157C05861564';
-const UNISWAP_V3_NFT_MANAGER_ADDRESS =
-  '0xC36442b4a4522E871399CD717aBDD847Ab11FE88';
-
 export class Ethereum extends EthereumBase {
   private ethGasStationUrl: string;
   private gasPrice: number;
   private gasPriceLastUpdated: Date | null;
-  private _approvedSpenders: string[];
 
   constructor() {
-    let config, otherApprovedSpenders;
+    let config;
     if (ConfigManager.config.ETHEREUM_CHAIN === 'mainnet') {
       config = EthereumConfig.config.mainnet;
-      otherApprovedSpenders = [BALANCER_MAINNET_ADDRESS];
     } else {
       config = EthereumConfig.config.kovan;
-      otherApprovedSpenders = [BALANCER_KOVAN_ADDRESS];
     }
 
     super(
@@ -49,17 +36,8 @@ export class Ethereum extends EthereumBase {
 
     this.gasPrice = ConfigManager.config.ETH_MANUAL_GAS_PRICE;
     this.gasPriceLastUpdated = null;
-    this._approvedSpenders = [
-      UNISWAP_ROUTER_ADDRESS,
-      UNISWAP_V3_ROUTER_ADDRESS,
-      UNISWAP_V3_NFT_MANAGER_ADDRESS,
-    ].concat(otherApprovedSpenders);
 
     this.updateGasPrice();
-  }
-
-  get approvedSpenders(): string[] {
-    return this._approvedSpenders;
   }
 
   // ethereum token lists are large. instead of reloading each time with
