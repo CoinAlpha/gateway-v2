@@ -18,6 +18,7 @@ export const errorMiddleware = (
   response: Response,
   _next: NextFunction
 ) => {
+  console.log('errorMiddleware received error');
   const status = error.status || 500;
   const message = error.message || 'Something went wrong';
   response.status(status).send({

@@ -199,4 +199,11 @@ export namespace EthereumRoutes {
       });
     }
   );
+
+  router.use((err: any, _req: any, res: any, _next: any) => {
+    console.log('error handler');
+
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+  });
 }
