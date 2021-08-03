@@ -2,16 +2,7 @@ import { BigNumber, Contract, providers, Wallet } from 'ethers';
 import abi from './ethereum.abi.json';
 import axios from 'axios';
 import fs from 'fs';
-import { TokenValue } from './base';
-
-// the receipt from a transaction
-export interface EthTransactionReceipt {
-  gasUsed: number;
-  blockNumber: number;
-  confirmations: number;
-  status: number;
-  logs: Array<providers.Log>;
-}
+import { TokenListType, TokenValue } from './base';
 
 // information about an Ethereum token
 export interface Token {
@@ -22,15 +13,9 @@ export interface Token {
   decimals: number;
 }
 
-// MKR does not match the ERC20 perfectly so we need to use a separate ABI.
-const MKR_ADDRESS = '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2';
-
-// the type of information source for tokens
-type TokenListType = 'FILE' | 'URL';
-
 export class EthereumBase {
-  private readonly provider;
-  private tokenList: Token[] = [];
+  protected readonly provider;
+  protected tokenList: Token[] = [];
   private tokenMap: Record<string, Token> = {};
   // there are async values set in the constructor
   private _ready: boolean = false;
@@ -84,7 +69,7 @@ export class EthereumBase {
     return null;
   }
 
-  // returns the gas price
+  // returns the gas price.
   getGasPrice(): number {
     return this.gasPriceConstant;
   }
@@ -111,12 +96,7 @@ export class EthereumBase {
     decimals: number
   ): Promise<TokenValue> {
     // instantiate a contract and pass in provider for read-only access
-    let contract;
-    if (tokenAddress === MKR_ADDRESS) {
-      contract = new Contract(tokenAddress, abi.MKRAbi, this.provider);
-    } else {
-      contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
-    }
+    const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
     try {
       const balance = await contract.balanceOf(wallet.address);
       return { value: balance, decimals: decimals };
@@ -135,12 +115,7 @@ export class EthereumBase {
     decimals: number
   ): Promise<TokenValue> {
     // instantiate a contract and pass in provider for read-only access
-    let contract;
-    if (tokenAddress === MKR_ADDRESS) {
-      contract = new Contract(tokenAddress, abi.MKRAbi, this.provider);
-    } else {
-      contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
-    }
+    const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
     try {
       const allowance = await contract.allowance(wallet.address, spender);
       return { value: allowance, decimals: decimals };
@@ -149,24 +124,18 @@ export class EthereumBase {
     }
   }
 
-  // returns TxReceipt for a txHash
-  async getTransactionReceipt(txHash: string): Promise<EthTransactionReceipt> {
-    const transaction = await this.provider.getTransactionReceipt(txHash);
+  // returns an ethereum TransactionResponse for a txHash.
+  async getTransaction(
+    txHash: string
+  ): Promise<providers.TransactionResponse | null> {
+    return this.provider.getTransaction(txHash);
+  }
 
-    let gasUsed;
-    if (transaction.gasUsed) {
-      gasUsed = transaction.gasUsed.toNumber();
-    } else {
-      gasUsed = 0;
-    }
-
-    return {
-      gasUsed: gasUsed,
-      blockNumber: transaction.blockNumber,
-      confirmations: transaction.confirmations,
-      status: transaction.status || 0,
-      logs: transaction.logs,
-    };
+  // returns an ethereum TransactionReceipt for a txHash if the transaction has been mined.
+  async getTransactionReceipt(
+    txHash: string
+  ): Promise<providers.TransactionReceipt | null> {
+    return this.provider.getTransactionReceipt(txHash);
   }
 
   // adds allowance by spender to transfer the given amount of Token
@@ -178,12 +147,7 @@ export class EthereumBase {
   ): Promise<boolean> {
     try {
       // instantiate a contract and pass in wallet, which act on behalf of that signer
-      let contract;
-      if (tokenAddress === MKR_ADDRESS) {
-        contract = new Contract(tokenAddress, abi.MKRAbi, wallet);
-      } else {
-        contract = new Contract(tokenAddress, abi.ERC20Abi, wallet);
-      }
+      const contract = new Contract(tokenAddress, abi.ERC20Abi, wallet);
 
       return await contract.approve(spender, amount);
     } catch (err) {

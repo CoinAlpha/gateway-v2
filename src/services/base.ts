@@ -1,5 +1,8 @@
 import { BigNumber } from 'ethers';
 
+// the type of information source for tokens
+export type TokenListType = 'FILE' | 'URL';
+
 // insert a string into another string at an index
 const stringInsert = (str: string, val: string, index: number) => {
   if (index > 0) {
@@ -36,3 +39,16 @@ export interface TokenValue {
 export const tokenValueToString = (t: TokenValue): string => {
   return bigNumberWithDecimalToStr(t.value, t.decimals);
 };
+
+// safely parse a JSON from a string to a type.
+export const safeJsonParse =
+  <T>(guard: (o: any) => o is T) =>
+  (text: string): ParseResult<T> => {
+    const parsed = JSON.parse(text);
+    return guard(parsed) ? { parsed, hasError: false } : { hasError: true };
+  };
+
+// If the JSON was parsed successfully, return the result, otherwises return the error
+export type ParseResult<T> =
+  | { parsed: T; hasError: false; error?: undefined }
+  | { parsed?: undefined; hasError: true; error?: unknown };
