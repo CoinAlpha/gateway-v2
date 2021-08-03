@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, RequestHandler, Response, NextFunction } from 'express';
 
 // custom error handlin
 export class HttpException extends Error {
@@ -26,3 +26,9 @@ export const errorMiddleware = (
     message,
   });
 };
+
+export const asyncHandler =
+  (fn: RequestHandler) => (req: Request, res: Response, next: NextFunction) => {
+    console.log('asyncHandler called');
+    return Promise.resolve(fn(req, res, next)).catch(next);
+  };
