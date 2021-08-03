@@ -15,3 +15,7 @@ curl -X POST -H "Content-Type: application/json" -d "{\"privateKey\":\"$ETH_PRIV
 # approve Ethereum to spend your WETH
 
 curl -X POST -H "Content-Type: application/json" -d "{\"privateKey\":\"$ETH_PRIVATE_KEY\",\"spender\":\"0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D\",\"token\":\"DAI\"}" localhost:5000/eth/approve
+
+# check status of transaction 0x6d068067a5e5a0f08c6395b31938893d1cdad81f54a54456221ecd8c1941294d
+
+curl -X POST -H "Content-Type: application/json" -d "{\"txHash\":\"0x6d068067a5e5a0f08c6395b31938893d1cdad81f54a54456221ecd8c1941294d\"}" localhost:5000/eth/poll
