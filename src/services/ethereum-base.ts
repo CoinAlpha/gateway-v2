@@ -150,8 +150,10 @@ export class EthereumBase {
     try {
       // instantiate a contract and pass in wallet, which act on behalf of that signer
       const contract = new Contract(tokenAddress, abi.ERC20Abi, wallet);
-
-      return await contract.approve(spender, amount);
+      return await contract.approve(spender, amount, {
+        gasPrice: this.gasPriceConstant * 1e9,
+        gasLimit: 100000,
+      });
     } catch (err) {
       throw new Error(err.reason || 'error approval');
     }

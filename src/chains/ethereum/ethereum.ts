@@ -126,6 +126,7 @@ export class Ethereum extends EthereumBase {
     tokenAddress: string,
     amount: BigNumber
   ): Promise<boolean> {
+    console.log('ethereum.ts calling approveERC20');
     try {
       // instantiate a contract and pass in wallet, which act on behalf of that signer
       let contract;
@@ -135,8 +136,16 @@ export class Ethereum extends EthereumBase {
         contract = new Contract(tokenAddress, abi.ERC20Abi, wallet);
       }
 
-      return await contract.approve(spender, amount);
+      const response = await contract.approve(spender, amount, {
+        gasPrice: this.gasPrice * 1e9,
+        gasLimit: 100000,
+      });
+      console.log(response);
+      return response;
+      // return await contract.approve(spender, amount);
     } catch (err) {
+      console.log(err);
+      console.log('failed from ethereum.ts');
       throw new Error(err.reason || 'error approval');
     }
   }

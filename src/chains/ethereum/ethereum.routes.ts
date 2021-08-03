@@ -1,4 +1,4 @@
-import { Wallet } from 'ethers';
+import { constants, Wallet } from 'ethers';
 import { NextFunction, Router, Request, Response } from 'express';
 import { Ethereum } from './ethereum';
 import { EthereumConfig } from './ethereum.config';
@@ -137,7 +137,7 @@ export namespace EthereumRoutes {
         );
       }
 
-      let amount = ethers.constants.MaxUint256;
+      let amount = constants.MaxUint256;
       if (req.body.amount) {
         amount = ethers.utils.parseUnits(req.body.amount, token.decimals);
       }
@@ -151,7 +151,7 @@ export namespace EthereumRoutes {
           amount
         );
       } catch (err) {
-        approval = err;
+        approval = JSON.stringify(err);
       }
 
       res.status(200).json({
