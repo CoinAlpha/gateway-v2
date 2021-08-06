@@ -19,6 +19,7 @@ export namespace ConfigManager {
     ETH_GAS_STATION_REFRESH_TIME: number;
     ETH_MANUAL_GAS_PRICE: number;
     LOG_TO_STDOUT?: boolean;
+    UNSAFE_DEV_MODE_WITH_HTTP?: boolean;
   }
 
   export function validateConfig(o: any): o is Config {
