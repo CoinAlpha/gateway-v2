@@ -20,9 +20,9 @@ app.get('/', (_req: Request, res: Response) => {
 
 // handle any error thrown in the gateway api route
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.log('error handler');
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
+  const stack = err.stack || '';
+  const message = err.message || 'Something went wrong';
+  res.status(500).json({ message: message, stack: stack });
 });
 
 export default app;

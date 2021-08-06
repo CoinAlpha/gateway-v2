@@ -1,5 +1,6 @@
 import abi from '../../services/ethereum.abi.json';
 import axios from 'axios';
+import { logger } from '../../services/logger';
 import { BigNumber, Contract, Wallet } from 'ethers';
 import { EthereumBase, Token } from '../../services/ethereum-base';
 import { ConfigManager } from '../../services/config-manager';
@@ -88,7 +89,15 @@ export class Ethereum extends EthereumBase {
     }
 
     try {
+      logger.info(
+        'Requesting balance for owner ' +
+          wallet.address +
+          ' for token ' +
+          tokenAddress +
+          '.'
+      );
       const balance = await contract.balanceOf(wallet.address);
+      logger.info(balance);
       return { value: balance, decimals: decimals };
     } catch (err) {
       throw new Error(
@@ -112,7 +121,17 @@ export class Ethereum extends EthereumBase {
       contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
     }
     try {
+      logger.info(
+        'Requesting spender ' +
+          spender +
+          ' allowance for owner ' +
+          wallet.address +
+          ' for token ' +
+          tokenAddress +
+          '.'
+      );
       const allowance = await contract.allowance(wallet.address, spender);
+      logger.info(allowance);
       return { value: allowance, decimals: decimals };
     } catch (err) {
       throw new Error(err.reason || 'error allowance lookup');
@@ -126,7 +145,6 @@ export class Ethereum extends EthereumBase {
     tokenAddress: string,
     amount: BigNumber
   ): Promise<boolean> {
-    console.log('ethereum.ts calling approveERC20');
     try {
       // instantiate a contract and pass in wallet, which act on behalf of that signer
       let contract;
@@ -136,16 +154,24 @@ export class Ethereum extends EthereumBase {
         contract = new Contract(tokenAddress, abi.ERC20Abi, wallet);
       }
 
+      logger.info(
+        'Calling approve method called for spender ' +
+          spender +
+          ' requesting allowance ' +
+          amount.toString() +
+          ' from owner ' +
+          wallet.address +
+          ' on token ' +
+          tokenAddress +
+          '.'
+      );
       const response = await contract.approve(spender, amount, {
         gasPrice: this.gasPrice * 1e9,
         gasLimit: 100000,
       });
-      console.log(response);
+      logger.info(response);
       return response;
-      // return await contract.approve(spender, amount);
     } catch (err) {
-      console.log(err);
-      console.log('failed from ethereum.ts');
       throw new Error(err.reason || 'error approval');
     }
   }
