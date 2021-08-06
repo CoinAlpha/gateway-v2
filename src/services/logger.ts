@@ -46,9 +46,9 @@ export const logger = winston.createLogger({
 });
 
 if (ConfigManager.config.LOG_TO_STDOUT == true) {
-logger.add(
-  new winston.transports.Console({
-    format: winston.format.simple(),
-  })
-);
-};
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    })
+  );
+}

@@ -2,6 +2,8 @@ import bodyParser from 'body-parser';
 import express from 'express';
 import { Request, Response, NextFunction } from 'express';
 import { EthereumRoutes } from './chains/ethereum/ethereum.routes';
+import { logger } from './services/logger';
+
 const app = express();
 
 // parse body for application/json
@@ -22,6 +24,7 @@ app.get('/', (_req: Request, res: Response) => {
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   const stack = err.stack || '';
   const message = err.message || 'Something went wrong';
+  logger.error(message + stack);
   res.status(500).json({ message: message, stack: stack });
 });
 
