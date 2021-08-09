@@ -1,9 +1,9 @@
 {
   "name": "gateway-v2",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Hummingbot Gateway",
   "main": "index.js",
-  "license": "Apache 2",
+  "license": "Apache-2.0",
   "repository": "https://github.com/coinalpha/gateway-v2",
   "scripts": {
     "prebuild": "rimraf dist && mkdir dist",

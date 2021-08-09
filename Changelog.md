@@ -4,6 +4,26 @@ All notable changes to gateway should be added to this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2021-07-29
+
+### Added
+
+- Added ethereum routes:
+  - `/eth`
+  - `/eth/balances`
+  - `/eth/approve`
+  - `/eth/poll`
+
+- Simple express error handler (to be improved in future PRs)
+
+- Add approvedSpenders to Ethereum.
+
+- Add getTokenBySymbol to Ethereum.
+
+- uniswap.config.ts with Uniswap addresses.
+
+- balancer.config.ts with Balancer addresses
+
 ## [0.1.2] - 2021-07-27
 
 ### Added

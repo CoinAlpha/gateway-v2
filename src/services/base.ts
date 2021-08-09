@@ -52,3 +52,7 @@ export const safeJsonParse =
 export type ParseResult<T> =
   | { parsed: T; hasError: false; error?: undefined }
   | { parsed?: undefined; hasError: true; error?: unknown };
+
+export const latency = (startTime: number, endTime: number): number => {
+  return (endTime - startTime) / 1000;
+};

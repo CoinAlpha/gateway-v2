@@ -24,7 +24,7 @@ export class Ethereum extends EthereumBase {
 
     super(
       config.chainId,
-      config.rpcUrl,
+      config.rpcUrl + ConfigManager.config.INFURA_KEY,
       config.tokenListSource,
       config.tokenListType,
       ConfigManager.config.ETH_MANUAL_GAS_PRICE
@@ -86,6 +86,7 @@ export class Ethereum extends EthereumBase {
     } else {
       contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
     }
+
     try {
       const balance = await contract.balanceOf(wallet.address);
       return { value: balance, decimals: decimals };
@@ -125,6 +126,7 @@ export class Ethereum extends EthereumBase {
     tokenAddress: string,
     amount: BigNumber
   ): Promise<boolean> {
+    console.log('ethereum.ts calling approveERC20');
     try {
       // instantiate a contract and pass in wallet, which act on behalf of that signer
       let contract;
@@ -134,9 +136,31 @@ export class Ethereum extends EthereumBase {
         contract = new Contract(tokenAddress, abi.ERC20Abi, wallet);
       }
 
-      return await contract.approve(spender, amount);
+      const response = await contract.approve(spender, amount, {
+        gasPrice: this.gasPrice * 1e9,
+        gasLimit: 100000,
+      });
+      console.log(response);
+      return response;
+      // return await contract.approve(spender, amount);
     } catch (err) {
+      console.log(err);
+      console.log('failed from ethereum.ts');
       throw new Error(err.reason || 'error approval');
     }
+  }
+
+  getTokenBySymbol(tokenSymbol: string): Token | undefined {
+    const symbol = tokenSymbol.toUpperCase();
+
+    let tokenContractAddress = undefined;
+    for (var i = 0; i < this.tokenList.length; i++) {
+      const token: Token = this.tokenList[i];
+      if (token.symbol === symbol) {
+        tokenContractAddress = token;
+        break;
+      }
+    }
+    return tokenContractAddress;
   }
 }

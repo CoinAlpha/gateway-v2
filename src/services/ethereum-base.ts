@@ -37,9 +37,10 @@ export class EthereumBase {
     this.gasPriceConstant = gasPriceConstant;
     (async () => {
       this.tokenList = await this.getTokenList(tokenListSource, tokenListType);
-      this.tokenList.forEach((token) => {
+      for (var i = 0; i < this.tokenList.length; i++) {
+        const token: Token = this.tokenList[i];
         this.tokenMap[token.symbol] = token;
-      });
+      }
       this._ready = true;
     })();
   }
@@ -57,7 +58,8 @@ export class EthereumBase {
       const { data } = await axios.get(tokenListSource);
       return data;
     } else {
-      return JSON.parse(fs.readFileSync(tokenListSource, 'utf8'));
+      const data = JSON.parse(fs.readFileSync(tokenListSource, 'utf8'));
+      return data.tokens;
     }
   }
 
@@ -148,8 +150,10 @@ export class EthereumBase {
     try {
       // instantiate a contract and pass in wallet, which act on behalf of that signer
       const contract = new Contract(tokenAddress, abi.ERC20Abi, wallet);
-
-      return await contract.approve(spender, amount);
+      return await contract.approve(spender, amount, {
+        gasPrice: this.gasPriceConstant * 1e9,
+        gasLimit: 100000,
+      });
     } catch (err) {
       throw new Error(err.reason || 'error approval');
     }
