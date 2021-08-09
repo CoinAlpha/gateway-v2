@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, RequestHandler, Response, NextFunction } from 'express';
 
-// custom error handlin
+// custom error for http exceptions
 export class HttpException extends Error {
   status: number;
   message: string;
@@ -11,17 +11,9 @@ export class HttpException extends Error {
   }
 }
 
-// return the error to the client
-export const errorMiddleware = (
-  error: HttpException,
-  _request: Request,
-  response: Response,
-  _next: NextFunction
-) => {
-  const status = error.status || 500;
-  const message = error.message || 'Something went wrong';
-  response.status(status).send({
-    status,
-    message,
-  });
-};
+// Capture errors from an async route, this must wrap any route that uses async.
+// For example, `app.get('/', asyncHandler(async (req, res) -> {...}))`
+export const asyncHandler =
+  (fn: RequestHandler) => (req: Request, res: Response, next: NextFunction) => {
+    return Promise.resolve(fn(req, res, next)).catch(next);
+  };
