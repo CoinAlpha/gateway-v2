@@ -96,8 +96,11 @@ app.post(
       config.LOG_TO_STDOUT = req.body.LOG_TO_STDOUT;
     }
 
+    logger.info('Update gateway config file.');
     ConfigManager.updateConfig(config);
+    logger.info('Reloading gateway config file.');
     ConfigManager.reloadConfig();
+    logger.info('Reloading Ethereum routes.');
     EthereumRoutes.reload();
     res.send('The config has been updated');
   }
