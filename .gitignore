@@ -23,7 +23,8 @@ dist/
 logs/
 package-lock.json
 
-# cert
+# certs
+certs/
 *.pem
 *.srl
 *.key
