@@ -6,15 +6,15 @@ HUMMINGBOT_INSTANCE_ID: '67618e88c8b8f52342e61c6e46dc2571fa48543b'
 LOG_PATH: './logs'
 GMT_OFFSET: +0800
 
-# certsC
-CERT_PATH: '/home/james/work/hummingbot/gateway-v2/certs'
-CERT_PASSPHRASE: 'a'
+# certs
+CERT_PATH: ''
+CERT_PASSPHRASE: ''
 
 # chain environments
-ETHEREUM_CHAIN: 'kovan'
+ETHEREUM_CHAIN: mainnet
 
 # Infura
-INFURA_KEY: '8ae10dea308d4bfb9176933fadc114c9'
+INFURA_KEY: ''
 
 # Eth Gas Station
 ETH_GAS_STATION_ENABLE: true
@@ -22,6 +22,3 @@ ETH_GAS_STATION_API_KEY: ''
 ETH_GAS_STATION_GAS_LEVEL: fast
 ETH_GAS_STATION_REFRESH_TIME: 60
 ETH_MANUAL_GAS_PRICE: 100
-
-LOG_TO_STDOUT: true
-UNSAFE_DEV_MODE_WITH_HTTP: true
