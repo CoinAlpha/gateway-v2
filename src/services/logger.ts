@@ -45,10 +45,16 @@ export const logger = winston.createLogger({
   transports: [allLogsFileTransport],
 });
 
-if (ConfigManager.config.LOG_TO_STDOUT == true) {
-  logger.add(
-    new winston.transports.Console({
-      format: winston.format.simple(),
-    })
-  );
-}
+const toStdout = new winston.transports.Console({
+  format: winston.format.simple(),
+});
+
+export const updateLoggerToStdout = () => {
+  if (ConfigManager.config.LOG_TO_STDOUT == true) {
+    logger.add(toStdout);
+  } else {
+    logger.remove(toStdout);
+  }
+};
+
+updateLoggerToStdout();

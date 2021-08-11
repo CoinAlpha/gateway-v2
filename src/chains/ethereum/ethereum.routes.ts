@@ -11,7 +11,11 @@ import ethers from 'ethers';
 
 export namespace EthereumRoutes {
   export const router = Router();
-  const ethereum = new Ethereum();
+  let ethereum = new Ethereum();
+
+  export const reload = (): void => {
+    ethereum = new Ethereum();
+  };
 
   router.get(
     '/',

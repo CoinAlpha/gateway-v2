@@ -14,7 +14,7 @@ export interface Token {
 }
 
 export class EthereumBase {
-  protected readonly provider;
+  protected provider;
   protected tokenList: Token[] = [];
   private tokenMap: Record<string, Token> = {};
   // there are async values set in the constructor
@@ -31,6 +31,27 @@ export class EthereumBase {
     tokenListType: TokenListType,
     gasPriceConstant: number
   ) {
+    this.provider = new providers.JsonRpcProvider(rpcUrl);
+    this.chainID = chainID;
+    this.rpcUrl = rpcUrl;
+    this.gasPriceConstant = gasPriceConstant;
+    (async () => {
+      this.tokenList = await this.getTokenList(tokenListSource, tokenListType);
+      for (var i = 0; i < this.tokenList.length; i++) {
+        const token: Token = this.tokenList[i];
+        this.tokenMap[token.symbol] = token;
+      }
+      this._ready = true;
+    })();
+  }
+
+  reload(
+    chainID: number,
+    rpcUrl: string,
+    tokenListSource: string,
+    tokenListType: TokenListType,
+    gasPriceConstant: number
+  ): void {
     this.provider = new providers.JsonRpcProvider(rpcUrl);
     this.chainID = chainID;
     this.rpcUrl = rpcUrl;
