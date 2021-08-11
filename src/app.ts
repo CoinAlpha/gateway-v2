@@ -1,11 +1,15 @@
 import bodyParser from 'body-parser';
 import express from 'express';
+import { Server } from 'http';
 import { Request, Response, NextFunction } from 'express';
 import { EthereumRoutes } from './chains/ethereum/ethereum.routes';
 import { ConfigManager } from './services/config-manager';
-import { logger } from './services/logger';
+import { logger, updateLoggerToStdout } from './services/logger';
+import { addHttps } from './https';
+import { asyncHandler } from './services/error-handler';
 
 const app = express();
+let server: Server;
 
 // parse body for application/json
 app.use(bodyParser.json());
@@ -42,68 +46,36 @@ interface ConfigUpdateRequest {
 
 app.post(
   '/config/update',
-  (req: Request<{}, {}, ConfigUpdateRequest>, res: Response) => {
-    let config = ConfigManager.config;
-    if (req.body.APPNAME) {
-      config.APPNAME = req.body.APPNAME;
-    }
-    if (req.body.PORT) {
-      config.PORT = req.body.PORT;
-    }
-    if (req.body.IP_WHITELIST) {
-      config.IP_WHITELIST = req.body.IP_WHITELIST;
-    }
-    if (req.body.HUMMINGBOT_INSTANCE_ID) {
-      config.HUMMINGBOT_INSTANCE_ID = req.body.HUMMINGBOT_INSTANCE_ID;
-    }
+  asyncHandler(
+    async (req: Request<{}, {}, ConfigUpdateRequest>, res: Response) => {
+      let config = ConfigManager.config;
 
-    if (req.body.LOG_PATH) {
-      config.LOG_PATH = req.body.LOG_PATH;
-    }
+      for (const [k, v] of Object.entries(req.body)) {
+        // this prevents the client from accidentally turning off HTTPS
+        if (k != 'UNSAFE_DEV_MODE_WITH_HTTP' && k in config) {
+          (config as any)[k] = v;
+        }
+      }
 
-    if (req.body.GMT_OFFSET) {
-      config.GMT_OFFSET = req.body.GMT_OFFSET;
-    }
-    if (req.body.CERT_PATH) {
-      config.CERT_PATH = req.body.CERT_PATH;
-    }
-    if (req.body.CERT_PASSPHRASE) {
-      config.CERT_PASSPHRASE = req.body.CERT_PASSPHRASE;
-    }
-    if (req.body.ETHEREUM_CHAIN) {
-      config.ETHEREUM_CHAIN = req.body.ETHEREUM_CHAIN;
-    }
-    if (req.body.INFURA_KEY) {
-      config.INFURA_KEY = req.body.INFURA_KEY;
-    }
-    if (req.body.ETH_GAS_STATION_ENABLE) {
-      config.ETH_GAS_STATION_ENABLE = req.body.ETH_GAS_STATION_ENABLE;
-    }
-    if (req.body.ETH_GAS_STATION_API_KEY) {
-      config.ETH_GAS_STATION_API_KEY = req.body.ETH_GAS_STATION_API_KEY;
-    }
-    if (req.body.ETH_GAS_STATION_GAS_LEVEL) {
-      config.ETH_GAS_STATION_GAS_LEVEL = req.body.ETH_GAS_STATION_GAS_LEVEL;
-    }
-    if (req.body.ETH_GAS_STATION_REFRESH_TIME) {
-      config.ETH_GAS_STATION_REFRESH_TIME =
-        req.body.ETH_GAS_STATION_REFRESH_TIME;
-    }
-    if (req.body.ETH_MANUAL_GAS_PRICE) {
-      config.ETH_MANUAL_GAS_PRICE = req.body.ETH_MANUAL_GAS_PRICE;
-    }
-    if (req.body.LOG_TO_STDOUT) {
-      config.LOG_TO_STDOUT = req.body.LOG_TO_STDOUT;
-    }
+      logger.info('Update gateway config file.');
+      ConfigManager.updateConfig(config);
 
-    logger.info('Update gateway config file.');
-    ConfigManager.updateConfig(config);
-    logger.info('Reloading gateway config file.');
-    ConfigManager.reloadConfig();
-    logger.info('Reloading Ethereum routes.');
-    EthereumRoutes.reload();
-    res.send('The config has been updated');
-  }
+      logger.info('Reloading gateway config file.');
+      ConfigManager.reloadConfig();
+
+      logger.info('Reload logger to stdout.');
+      updateLoggerToStdout();
+
+      logger.info('Reloading Ethereum routes.');
+      EthereumRoutes.reload();
+
+      logger.info('Restarting gateway.');
+      await stopGateway();
+      await startGateway();
+
+      res.send('The config has been updated');
+    }
+  )
 );
 
 // handle any error thrown in the gateway api route
@@ -114,4 +86,18 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ message: message, stack: stack });
 });
 
-export default app;
+export const startGateway = async () => {
+  const port = ConfigManager.config.PORT;
+  logger.info(`⚡️ Gateway API listening on port ${port}`);
+  if (ConfigManager.config.UNSAFE_DEV_MODE_WITH_HTTP) {
+    logger.info('Running in UNSAFE HTTP! This could expose private keys.');
+    server = await app.listen(port);
+  } else {
+    logger.info('The server is secured behind HTTPS.');
+    server = await addHttps(app).listen(port);
+  }
+};
+
+const stopGateway = async () => {
+  await server.close();
+};

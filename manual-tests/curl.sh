@@ -19,3 +19,7 @@ curl -X POST -H "Content-Type: application/json" -d "{\"privateKey\":\"$ETH_PRIV
 # check status of transaction 0x6d068067a5e5a0f08c6395b31938893d1cdad81f54a54456221ecd8c1941294d
 
 curl -X POST -H "Content-Type: application/json" -d "{\"txHash\":\"0x6d068067a5e5a0f08c6395b31938893d1cdad81f54a54456221ecd8c1941294d\"}" localhost:5000/eth/poll
+
+# update config
+
+curl -X POST -H "Content-Type: application/json" -d "{\"LOG_TO_STDOUT\":true}" localhost:5000/config/update
