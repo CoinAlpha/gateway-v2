@@ -7,6 +7,7 @@ import 'jest-extended';
 const certPath = ConfigManager.config.CERT_PATH.replace(/\/$/, '');
 const host = 'localhost';
 const port = ConfigManager.config.PORT;
+const uniswapContract = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
 
 let privateKey: string;
 if (process.env.ETH_PRIVATE_KEY && process.env.ETH_PRIVATE_KEY !== '') {
@@ -73,6 +74,20 @@ const ethTests = async () => {
     expect(Object.keys(gatewayEthBalanceResult.data.balances).length).toEqual(
       3
     );
+
+    const gatewayEthApproveResult = await request('POST', '/eth/approve', {
+      privateKey: privateKey,
+      spender: uniswapContract,
+      token: 'DAI',
+    });
+
+    const txHash = gatewayEthApproveResult.data.approval.hash;
+
+    const gatewayEthPollResult = await request('POST', '/eth/poll', {
+      txHash: txHash,
+    });
+
+    console.log(gatewayEthPollResult);
   });
 };
 
