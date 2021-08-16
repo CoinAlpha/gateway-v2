@@ -1,5 +1,5 @@
 import { ConfigManager } from '../../../services/config-manager';
-import { BigNumber } from 'ethers';
+import { BigNumber, Contract, Transaction, Wallet } from 'ethers';
 import { EthereumConfig } from '../ethereum.config';
 import { Ethereum } from '../ethereum';
 import {
@@ -12,15 +12,17 @@ import {
   Trade,
 } from '@uniswap/sdk';
 
+import routerAbi from './uniswap_v2_router_abi.json';
+
 export interface ExpectedTrade {
   trade: Trade;
   expectedAmount: CurrencyAmount;
 }
 
 export class Uniswap {
-  // private router: Router;
-  // private gasLimit: number;
-  // private ttl: string;
+  private uniswapRouter: string;
+  private gasLimit: number;
+  private ttl: number;
   private allowedSlippage: Percent;
   private chainId;
   private ethereum = new Ethereum();
@@ -28,14 +30,14 @@ export class Uniswap {
   private tokenList: Record<string, Token> = {};
 
   constructor(
-    _router: Router,
-    _gasLimit: number,
-    _ttl: string,
+    uniswapRouter: string,
+    gasLimit: number,
+    ttl: number,
     allowedSlippage: Percent
   ) {
-    // this.router = router;
-    // this.gasLimit = gasLimit;
-    // this.ttl = ttl;
+    this.uniswapRouter = uniswapRouter;
+    this.gasLimit = gasLimit;
+    this.ttl = ttl;
     this.allowedSlippage = allowedSlippage;
     if (ConfigManager.config.ETHEREUM_CHAIN === 'mainnet') {
       this.chainId = EthereumConfig.config.mainnet.chainId;
@@ -132,5 +134,28 @@ export class Uniswap {
     } else {
       return `priceSwapOut: tokenInAddress ${tokenInAddress} not found in tokenList.`;
     }
-  }    
+  }
+
+  // given a wallet and a Uniswap trade, try to execute it on the Ethereum block chain.
+  async executeTrade(
+    wallet: Wallet,
+    trade: Trade,
+    gasPrice: number
+  ): Promise<Transaction> {
+    const result = Router.swapCallParameters(trade, {
+      ttl: this.ttl,
+      recipient: wallet.address,
+      allowedSlippage: this.allowedSlippage,
+    });
+
+    const contract = new Contract(this.uniswapRouter, routerAbi.abi, wallet);
+
+    const tx = await contract[result.methodName](...result.args, {
+      gasPrice: gasPrice * 1e9,
+      gasLimit: this.gasLimit,
+      value: result.value,
+    });
+
+    return tx;
+  }
 }
