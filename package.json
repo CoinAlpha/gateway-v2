@@ -1,6 +1,6 @@
 {
   "name": "gateway-v2",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Hummingbot Gateway",
   "main": "index.js",
   "license": "Apache-2.0",
@@ -17,7 +17,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test-scripts": "jest ./test-scripts"
   },
   "dependencies": {
     "@ethersproject/experimental": "^5.3.0",
