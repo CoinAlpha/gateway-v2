@@ -85,13 +85,52 @@ export class Uniswap {
           );
           return { trade: trades[0], expectedAmount };
         } else {
-          return `No trade pair found for ${tokenInAddress} to ${tokenOutAddress}.`;
+          return `priceSwapIn: no trade pair found for ${tokenInAddress} to ${tokenOutAddress}.`;
         }
       } else {
-        return `tokenOutAddress: ${tokenOutAddress} not found in tokenList.`;
+        return `priceSwapIn: tokenOutAddress ${tokenOutAddress} not found in tokenList.`;
       }
     } else {
-      return `tokenInAddress: ${tokenInAddress} not found in tokenList.`;
+      return `priceSwapIn: tokenInAddress ${tokenInAddress} not found in tokenList.`;
     }
   }
+
+  async priceSwapOut(
+    tokenInAddress: string,
+    tokenOutAddress: string,
+    tokenOutAmount: BigNumber
+  ): Promise<ExpectedTrade | string> {
+    const tokenIn = this.tokenList[tokenInAddress];
+    if (tokenIn) {
+      const tokenOut = this.tokenList[tokenOutAddress];
+      if (tokenOut) {
+        const tokenOutAmount_ = new TokenAmount(
+          tokenOut,
+          tokenOutAmount.toString()
+        );
+
+        const pair = await Fetcher.fetchPairData(tokenIn, tokenOut);
+        const trades = Trade.bestTradeExactOut(
+          [pair],
+          tokenIn,
+          tokenOutAmount_,
+          {
+            maxHops: 1,
+          }
+        );
+        if (trades.length > 0) {
+          const expectedAmount = trades[0].maximumAmountIn(
+            this.allowedSlippage
+          );
+          return { trade: trades[0], expectedAmount };
+        } else {
+          return `priceSwapOut: no trade pair found for ${tokenInAddress} to ${tokenOutAddress}.`;
+        }
+      } else {
+        return `priceSwapOut: tokenOutAddress ${tokenOutAddress} not found in tokenList.`;
+      }
+    } else {
+      return `priceSwapOut: tokenInAddress ${tokenInAddress} not found in tokenList.`;
+    }
+  }    
 }
