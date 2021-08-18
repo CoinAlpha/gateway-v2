@@ -6,6 +6,7 @@ import { HttpException, asyncHandler } from '../../../services/error-handler';
 import { BigNumber } from 'ethers';
 import { latency } from '../../../services/base';
 import { ethers } from 'ethers';
+import { CurrencyAmount, Trade } from '@uniswap/sdk';
 
 export namespace UniswapRoutes {
   export const router = Router();
@@ -21,27 +22,54 @@ export namespace UniswapRoutes {
     });
   });
 
-  router.get('/gas-limit', (_req: Request, res: Response) => {
-    res.status(200).json({
-      network: ConfigManager.config.ETHEREUM_CHAIN,
-      gasLimit: ConfigManager.config.UNISWAP_GAS_LIMIT,
-      timestamp: Date.now(),
-    });
-  });
+  interface UniswapGasLimitResponse {
+    network: string;
+    gasLimit: number;
+    timestamp: number;
+  }
+
+  router.get(
+    '/gas-limit',
+    (_req: Request, res: Response<UniswapGasLimitResponse, {}>) => {
+      res.status(200).json({
+        network: ConfigManager.config.ETHEREUM_CHAIN,
+        gasLimit: ConfigManager.config.UNISWAP_GAS_LIMIT,
+        timestamp: Date.now(),
+      });
+    }
+  );
 
   type Side = 'BUY' | 'SELL';
 
-  interface UniswapTradeRequest {
+  interface UniswapPriceRequest {
     quote: string;
     base: string;
     amount: BigNumber;
     side: Side;
   }
 
+  interface UniswapPriceResponse {
+    network: string;
+    timestamp: number;
+    latency: number;
+    base: string;
+    quote: string;
+    amount: BigNumber;
+    expectedAmount: CurrencyAmount;
+    tradePrice: string;
+    gasPrice: number;
+    gasLimit: number;
+    gasCost: number;
+    trade: Trade;
+  }
+
   router.post(
     '/price',
     asyncHandler(
-      async (req: Request<{}, {}, UniswapTradeRequest>, res: Response) => {
+      async (
+        req: Request<{}, {}, UniswapPriceRequest>,
+        res: Response<UniswapPriceResponse, {}>
+      ) => {
         const initTime = Date.now();
         const amount = req.body.amount;
         const baseToken = eth.getTokenBySymbol(req.body.base);
@@ -118,10 +146,29 @@ export namespace UniswapRoutes {
     side: Side;
   }
 
+  interface UniswapTradeResponse {
+    network: string;
+    timestamp: number;
+    latency: number;
+    base: string;
+    quote: string;
+    amount: BigNumber;
+    expectedIn?: string;
+    expectedOut?: string;
+    price: string;
+    gasPrice: number;
+    gasLimit: number;
+    gasCost: number;
+    txHash: string | undefined;
+  }
+
   router.post(
     '/trade',
     asyncHandler(
-      async (req: Request<{}, {}, UniswapTradeRequest>, res: Response) => {
+      async (
+        req: Request<{}, {}, UniswapTradeRequest>,
+        res: Response<UniswapTradeResponse, {}>
+      ) => {
         const initTime = Date.now();
         const wallet = new ethers.Wallet(req.body.privateKey, eth.provider);
 
