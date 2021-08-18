@@ -5,6 +5,7 @@ import { ConfigManager } from '../../../services/config-manager';
 import { HttpException, asyncHandler } from '../../../services/error-handler';
 import { BigNumber } from 'ethers';
 import { latency } from '../../../services/base';
+import { ethers } from 'ethers';
 
 export namespace UniswapRoutes {
   export const router = Router();
@@ -92,6 +93,110 @@ export namespace UniswapRoutes {
                 trade: trade,
               };
               res.status(200).json(payload);
+            }
+          } else {
+            throw new HttpException(
+              500,
+              'Unrecognized quote token symbol: ' + req.body.quote
+            );
+          }
+        } else {
+          throw new HttpException(
+            500,
+            'Unrecognized base token symbol: ' + req.body.base
+          );
+        }
+      }
+    )
+  );
+
+  interface UniswapTradeRequest {
+    quote: string;
+    base: string;
+    amount: BigNumber;
+    privateKey: string;
+    side: Side;
+  }
+
+  router.post(
+    '/trade',
+    asyncHandler(
+      async (req: Request<{}, {}, UniswapTradeRequest>, res: Response) => {
+        const initTime = Date.now();
+        const wallet = new ethers.Wallet(req.body.privateKey, eth.provider);
+
+        const baseToken = eth.getTokenBySymbol(req.body.base);
+
+        if (baseToken) {
+          const quoteToken = eth.getTokenBySymbol(req.body.quote);
+          if (quoteToken) {
+            const result: ExpectedTrade | string =
+              req.body.side === 'BUY'
+                ? await uniswap.priceSwapOut(
+                    quoteToken.address, // tokenIn is quote asset
+                    baseToken.address, // tokenOut is base asset
+                    req.body.amount
+                  )
+                : await uniswap.priceSwapIn(
+                    baseToken.address, // tokenIn is base asset
+                    quoteToken.address, // tokenOut is quote asset
+                    req.body.amount
+                  );
+
+            if (typeof result === 'string') {
+              throw new HttpException(
+                500,
+                'Uniswap trade query failed: ' + result
+              );
+            } else {
+              const gasPrice = eth.getGasPrice();
+              const gasLimit = ConfigManager.config.UNISWAP_GAS_LIMIT;
+              if (req.body.side === 'BUY') {
+                const price = result.trade.executionPrice
+                  .invert()
+                  .toSignificant(8);
+
+                const tx = await uniswap.executeTrade(
+                  wallet,
+                  result.trade,
+                  gasPrice
+                );
+                res.status(200).json({
+                  network: ConfigManager.config.ETHEREUM_CHAIN,
+                  timestamp: initTime,
+                  latency: latency(initTime, Date.now()),
+                  base: baseToken.address,
+                  quote: quoteToken.address,
+                  amount: req.body.amount,
+                  expectedIn: result.expectedAmount.toSignificant(8),
+                  price: price,
+                  gasPrice: gasPrice,
+                  gasLimit: gasLimit,
+                  gasCost: gasPrice * gasLimit,
+                  txHash: tx.hash,
+                });
+              } else {
+                const price = result.trade.executionPrice.toSignificant(8);
+                const tx = await uniswap.executeTrade(
+                  wallet,
+                  result.trade,
+                  gasPrice
+                );
+                res.status(200).json({
+                  network: ConfigManager.config.ETHEREUM_CHAIN,
+                  timestamp: initTime,
+                  latency: latency(initTime, Date.now()),
+                  base: baseToken.address,
+                  quote: quoteToken.address,
+                  amount: req.body.amount,
+                  expectedOut: result.expectedAmount.toSignificant(8),
+                  price: price,
+                  gasPrice: gasPrice,
+                  gasLimit,
+                  gasCost: gasPrice * gasLimit,
+                  txHash: tx.hash,
+                });
+              }
             }
           } else {
             throw new HttpException(

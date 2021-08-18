@@ -14,7 +14,7 @@ export interface Token {
 }
 
 export class EthereumBase {
-  protected provider;
+  private _provider;
   protected tokenList: Token[] = [];
   private tokenMap: Record<string, Token> = {};
   // there are async values set in the constructor
@@ -31,7 +31,7 @@ export class EthereumBase {
     tokenListType: TokenListType,
     gasPriceConstant: number
   ) {
-    this.provider = new providers.JsonRpcProvider(rpcUrl);
+    this._provider = new providers.JsonRpcProvider(rpcUrl);
     this.chainID = chainID;
     this.rpcUrl = rpcUrl;
     this.gasPriceConstant = gasPriceConstant;
@@ -52,7 +52,7 @@ export class EthereumBase {
     tokenListType: TokenListType,
     gasPriceConstant: number
   ): void {
-    this.provider = new providers.JsonRpcProvider(rpcUrl);
+    this._provider = new providers.JsonRpcProvider(rpcUrl);
     this.chainID = chainID;
     this.rpcUrl = rpcUrl;
     this.gasPriceConstant = gasPriceConstant;
@@ -68,6 +68,10 @@ export class EthereumBase {
 
   ready(): boolean {
     return this._ready;
+  }
+
+  public get provider() {
+    return this._provider;
   }
 
   // returns a Tokens for a given list source and list type
@@ -99,7 +103,7 @@ export class EthereumBase {
 
   // returns Wallet for a private key
   getWallet(privateKey: string): Wallet {
-    return new Wallet(privateKey, this.provider);
+    return new Wallet(privateKey, this._provider);
   }
 
   // returns the ETH balance, convert BigNumber to string
@@ -119,7 +123,7 @@ export class EthereumBase {
     decimals: number
   ): Promise<TokenValue> {
     // instantiate a contract and pass in provider for read-only access
-    const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
+    const contract = new Contract(tokenAddress, abi.ERC20Abi, this._provider);
     try {
       const balance = await contract.balanceOf(wallet.address);
       return { value: balance, decimals: decimals };
@@ -138,7 +142,7 @@ export class EthereumBase {
     decimals: number
   ): Promise<TokenValue> {
     // instantiate a contract and pass in provider for read-only access
-    const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
+    const contract = new Contract(tokenAddress, abi.ERC20Abi, this._provider);
     try {
       const allowance = await contract.allowance(wallet.address, spender);
       return { value: allowance, decimals: decimals };
@@ -151,14 +155,14 @@ export class EthereumBase {
   async getTransaction(
     txHash: string
   ): Promise<providers.TransactionResponse | null> {
-    return this.provider.getTransaction(txHash);
+    return this._provider.getTransaction(txHash);
   }
 
   // returns an ethereum TransactionReceipt for a txHash if the transaction has been mined.
   async getTransactionReceipt(
     txHash: string
   ): Promise<providers.TransactionReceipt | null> {
-    return this.provider.getTransactionReceipt(txHash);
+    return this._provider.getTransactionReceipt(txHash);
   }
 
   // adds allowance by spender to transfer the given amount of Token
