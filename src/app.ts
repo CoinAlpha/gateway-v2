@@ -3,6 +3,7 @@ import express from 'express';
 import { Server } from 'http';
 import { Request, Response, NextFunction } from 'express';
 import { EthereumRoutes } from './chains/ethereum/ethereum.routes';
+import { UniswapRoutes } from './chains/ethereum/uniswap/uniswap.routes';
 import { ConfigManager } from './services/config-manager';
 import { logger, updateLoggerToStdout } from './services/logger';
 import { addHttps } from './https';
@@ -19,6 +20,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // mount sub routers
 app.use('/eth', EthereumRoutes.router);
+app.use('/eth/uniswap', UniswapRoutes.router);
 
 // a simple route to test that the server is running
 app.get('/', (_req: Request, res: Response) => {
