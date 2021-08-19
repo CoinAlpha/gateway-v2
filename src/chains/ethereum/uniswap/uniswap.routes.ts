@@ -6,7 +6,7 @@ import { HttpException, asyncHandler } from '../../../services/error-handler';
 import { BigNumber } from 'ethers';
 import { latency } from '../../../services/base';
 import { ethers } from 'ethers';
-import { CurrencyAmount, Trade } from '@uniswap/sdk';
+import { CurrencyAmount, Price, Trade } from '@uniswap/sdk';
 
 export namespace UniswapRoutes {
   export const router = Router();
@@ -39,7 +39,7 @@ export namespace UniswapRoutes {
     quote: string;
     amount: BigNumber;
     expectedAmount: CurrencyAmount;
-    tradePrice: string;
+    tradePrice: Price;
     gasPrice: number;
     gasLimit: number;
     gasCost: number;
@@ -136,9 +136,9 @@ export namespace UniswapRoutes {
     base: string;
     quote: string;
     amount: BigNumber;
-    expectedIn?: string;
-    expectedOut?: string;
-    price: string;
+    expectedIn?: CurrencyAmount;
+    expectedOut?: CurrencyAmount;
+    price: Price;
     gasPrice: number;
     gasLimit: number;
     gasCost: number;
