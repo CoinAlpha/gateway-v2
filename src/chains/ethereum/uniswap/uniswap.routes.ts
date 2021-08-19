@@ -135,7 +135,7 @@ export namespace UniswapRoutes {
     latency: number;
     base: string;
     quote: string;
-    amount: BigNumber;
+    amount: string;
     expectedIn?: CurrencyAmount;
     expectedOut?: CurrencyAmount;
     price: Price;
@@ -182,8 +182,7 @@ export namespace UniswapRoutes {
               const gasPrice = eth.getGasPrice();
               const gasLimit = ConfigManager.config.UNISWAP_GAS_LIMIT;
               if (req.body.side === 'BUY') {
-                const price = result.trade.executionPrice
-                  .invert();
+                const price = result.trade.executionPrice.invert();
 
                 const tx = await uniswap.executeTrade(
                   wallet,
@@ -196,7 +195,7 @@ export namespace UniswapRoutes {
                   latency: latency(initTime, Date.now()),
                   base: baseToken.address,
                   quote: quoteToken.address,
-                  amount: req.body.amount,
+                    amount: req.body.amount.toString(),
                   expectedIn: result.expectedAmount,
                   price: price,
                   gasPrice: gasPrice,
@@ -217,7 +216,7 @@ export namespace UniswapRoutes {
                   latency: latency(initTime, Date.now()),
                   base: baseToken.address,
                   quote: quoteToken.address,
-                  amount: req.body.amount,
+                    amount: req.body.amount.toString(),
                   expectedOut: result.expectedAmount,
                   price: price,
                   gasPrice: gasPrice,

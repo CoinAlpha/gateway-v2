@@ -15,10 +15,9 @@ export interface Token {
 
 export class EthereumBase {
   private _provider;
+  public ready: Promise<void>;
   protected tokenList: Token[] = [];
   private tokenMap: Record<string, Token> = {};
-  // there are async values set in the constructor
-  private _ready: boolean = false;
 
   public chainID;
   public rpcUrl;
@@ -35,13 +34,12 @@ export class EthereumBase {
     this.chainID = chainID;
     this.rpcUrl = rpcUrl;
     this.gasPriceConstant = gasPriceConstant;
-    (async () => {
+    this.ready = (async () => {
       this.tokenList = await this.getTokenList(tokenListSource, tokenListType);
       for (var i = 0; i < this.tokenList.length; i++) {
         const token: Token = this.tokenList[i];
         this.tokenMap[token.symbol] = token;
       }
-      this._ready = true;
     })();
   }
 
@@ -62,12 +60,7 @@ export class EthereumBase {
         const token: Token = this.tokenList[i];
         this.tokenMap[token.symbol] = token;
       }
-      this._ready = true;
     })();
-  }
-
-  ready(): boolean {
-    return this._ready;
   }
 
   public get provider() {
