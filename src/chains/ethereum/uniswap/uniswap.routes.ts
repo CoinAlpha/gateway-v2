@@ -22,23 +22,6 @@ export namespace UniswapRoutes {
     });
   });
 
-  interface UniswapGasLimitResponse {
-    network: string;
-    gasLimit: number;
-    timestamp: number;
-  }
-
-  router.get(
-    '/gas-limit',
-    (_req: Request, res: Response<UniswapGasLimitResponse, {}>) => {
-      res.status(200).json({
-        network: ConfigManager.config.ETHEREUM_CHAIN,
-        gasLimit: ConfigManager.config.UNISWAP_GAS_LIMIT,
-        timestamp: Date.now(),
-      });
-    }
-  );
-
   type Side = 'BUY' | 'SELL';
 
   interface UniswapPriceRequest {
@@ -101,8 +84,8 @@ export namespace UniswapRoutes {
 
               const tradePrice =
                 req.body.side === 'BUY'
-                  ? trade.executionPrice.invert().toSignificant(8)
-                  : trade.executionPrice.toSignificant(8);
+                  ? trade.executionPrice.invert()
+                  : trade.executionPrice;
 
               const gasLimit = ConfigManager.config.UNISWAP_GAS_LIMIT;
               const gasPrice = eth.getGasPrice();
@@ -200,8 +183,7 @@ export namespace UniswapRoutes {
               const gasLimit = ConfigManager.config.UNISWAP_GAS_LIMIT;
               if (req.body.side === 'BUY') {
                 const price = result.trade.executionPrice
-                  .invert()
-                  .toSignificant(8);
+                  .invert();
 
                 const tx = await uniswap.executeTrade(
                   wallet,
@@ -215,7 +197,7 @@ export namespace UniswapRoutes {
                   base: baseToken.address,
                   quote: quoteToken.address,
                   amount: req.body.amount,
-                  expectedIn: result.expectedAmount.toSignificant(8),
+                  expectedIn: result.expectedAmount,
                   price: price,
                   gasPrice: gasPrice,
                   gasLimit: gasLimit,
@@ -223,7 +205,7 @@ export namespace UniswapRoutes {
                   txHash: tx.hash,
                 });
               } else {
-                const price = result.trade.executionPrice.toSignificant(8);
+                const price = result.trade.executionPrice;
                 const tx = await uniswap.executeTrade(
                   wallet,
                   result.trade,
@@ -236,7 +218,7 @@ export namespace UniswapRoutes {
                   base: baseToken.address,
                   quote: quoteToken.address,
                   amount: req.body.amount,
-                  expectedOut: result.expectedAmount.toSignificant(8),
+                  expectedOut: result.expectedAmount,
                   price: price,
                   gasPrice: gasPrice,
                   gasLimit,

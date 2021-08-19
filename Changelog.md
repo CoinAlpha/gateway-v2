@@ -8,7 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- uniswap routes: /, /gas-limit, /price and /trade
+- Added uniswap routes:
+  - `/` 
+  - `/price`
+  - `/trade`
 
 ## [0.1.7] - 2021-08-16
 
