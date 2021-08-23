@@ -33,9 +33,12 @@ curl -X GET localhost:5000/eth/uniswap
 
 curl -X POST -H "Content-Type: application/json" -d "{\"quote\":\"DAI\",\"base\":\"WETH\",\"amount\":\"1000000000000000000\",\"side\":\"BUY\"}" localhost:5000/eth/uniswap/price
 
-
 curl -X POST -H "Content-Type: application/json" -d "{\"quote\":\"DAI\",\"base\":\"WETH\",\"amount\":\"1000\",\"side\":\"BUY\"}" localhost:5000/eth/uniswap/price
 
-trade=$(curl -X POST -H "Content-Type: application/json" -d "{\"quote\":\"DAI\",\"base\":\"WETH\",\"amount\":\"1000\",\"side\":\"BUY\"}" localhost:5000/eth/uniswap/price | jq '.trade')
-
 curl -X POST -H "Content-Type: application/json" -d "{\"quote\":\"DAI\",\"base\":\"WETH\",\"amount\":\"1\",\"side\":\"BUY\",\"privateKey\":\"$ETH_PRIVATE_KEY\"}" localhost:5000/eth/uniswap/trade
+
+# run transaction then poll it
+
+TX_HASH=$(curl -X POST -H "Content-Type: application/json" -d "{\"quote\":\"DAI\",\"base\":\"WETH\",\"amount\":\"1\",\"side\":\"BUY\",\"privateKey\":\"$ETH_PRIVATE_KEY\"}" localhost:5000/eth/uniswap/trade | jq '.txHash')
+
+curl -X POST -H "Content-Type: application/json" -d "{\"txHash\":$TX_HASH}" localhost:5000/eth/poll
