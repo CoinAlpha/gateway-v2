@@ -6,6 +6,7 @@ import { UniswapConfig } from './uniswap.config';
 import {
   CurrencyAmount,
   Fetcher,
+  Percent,
   Router,
   Token,
   TokenAmount,
@@ -21,10 +22,12 @@ export interface ExpectedTrade {
 
 export class Uniswap {
   private _uniswapRouter: string;
-  private chainId;
+  private chainId = EthereumConfig.config.kovan.chainId;
   private ethereum = new Ethereum();
 
   private tokenList: Record<string, Token> = {};
+
+  public ready: Promise<any>;
 
   constructor() {
     let config;
@@ -41,15 +44,18 @@ export class Uniswap {
       this.chainId = EthereumConfig.config.kovan.chainId;
     }
 
-    for (const token of this.ethereum.getStoredTokenList()) {
-      this.tokenList[token.address] = new Token(
-        this.chainId,
-        token.address,
-        token.decimals,
-        token.symbol,
-        token.name
-      );
-    }
+    this.ready = (async () => {
+      await this.ethereum.ready;
+      for (const token of this.ethereum.getStoredTokenList()) {
+        this.tokenList[token.address] = new Token(
+          this.chainId,
+          token.address,
+          token.decimals,
+          token.symbol,
+          token.name
+        );
+      }
+    })();
   }
 
   public get uniswapRouter(): string {
@@ -63,6 +69,7 @@ export class Uniswap {
     tokenOutAddress: string,
     tokenInAmount: BigNumber
   ): Promise<ExpectedTrade | string> {
+    await this.ready;
     const tokenIn = this.tokenList[tokenInAddress];
     if (tokenIn) {
       const tokenOut = this.tokenList[tokenOutAddress];
@@ -90,7 +97,10 @@ export class Uniswap {
             `Best trade for ${tokenIn.address}-${tokenOut.address}: ${trades[0]}`
           );
           const expectedAmount = trades[0].minimumAmountOut(
-            ConfigManager.config.UNISWAP_ALLOWED_SLIPPAGE
+            new Percent(
+              String(ConfigManager.config.UNISWAP_ALLOWED_SLIPPAGE[0]),
+              String(ConfigManager.config.UNISWAP_ALLOWED_SLIPPAGE[1])
+            )
           );
           return { trade: trades[0], expectedAmount };
         } else {
@@ -109,6 +119,7 @@ export class Uniswap {
     tokenOutAddress: string,
     tokenOutAmount: BigNumber
   ): Promise<ExpectedTrade | string> {
+    await this.ready;
     const tokenIn = this.tokenList[tokenInAddress];
     if (tokenIn) {
       const tokenOut = this.tokenList[tokenOutAddress];
@@ -134,8 +145,11 @@ export class Uniswap {
           logger.info(
             `Best trade for ${tokenIn.address}-${tokenOut.address}: ${trades[0]}`
           );
-          const expectedAmount = trades[0].maximumAmountIn(
-            ConfigManager.config.UNISWAP_ALLOWED_SLIPPAGE
+          const expectedAmount = trades[0].minimumAmountOut(
+            new Percent(
+              String(ConfigManager.config.UNISWAP_ALLOWED_SLIPPAGE[0]),
+              String(ConfigManager.config.UNISWAP_ALLOWED_SLIPPAGE[1])
+            )
           );
           return { trade: trades[0], expectedAmount };
         } else {
@@ -159,7 +173,10 @@ export class Uniswap {
     const result = Router.swapCallParameters(trade, {
       ttl: ConfigManager.config.UNISWAP_TTL,
       recipient: wallet.address,
-      allowedSlippage: ConfigManager.config.UNISWAP_ALLOWED_SLIPPAGE,
+      allowedSlippage: new Percent(
+        String(ConfigManager.config.UNISWAP_ALLOWED_SLIPPAGE[0]),
+        String(ConfigManager.config.UNISWAP_ALLOWED_SLIPPAGE[1])
+      ),
     });
 
     const contract = new Contract(this._uniswapRouter, routerAbi.abi, wallet);

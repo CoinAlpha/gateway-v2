@@ -6,7 +6,7 @@ import { HttpException, asyncHandler } from '../../../services/error-handler';
 import { BigNumber } from 'ethers';
 import { latency } from '../../../services/base';
 import { ethers } from 'ethers';
-import { CurrencyAmount, Price, Trade } from '@uniswap/sdk';
+import { Trade } from '@uniswap/sdk';
 
 export namespace UniswapRoutes {
   export const router = Router();
@@ -38,8 +38,8 @@ export namespace UniswapRoutes {
     base: string;
     quote: string;
     amount: BigNumber;
-    expectedAmount: CurrencyAmount;
-    tradePrice: Price;
+    expectedAmount: string;
+    tradePrice: string;
     gasPrice: number;
     gasLimit: number;
     gasCost: number;
@@ -96,8 +96,8 @@ export namespace UniswapRoutes {
                 base: baseToken.address,
                 quote: quoteToken.address,
                 amount: amount,
-                expectedAmount: expectedAmount,
-                tradePrice: tradePrice,
+                expectedAmount: expectedAmount.toSignificant(8),
+                tradePrice: tradePrice.toSignificant(8),
                 gasPrice: gasPrice,
                 gasLimit: gasLimit,
                 gasCost: gasPrice * gasLimit,
@@ -135,10 +135,10 @@ export namespace UniswapRoutes {
     latency: number;
     base: string;
     quote: string;
-    amount: BigNumber;
-    expectedIn?: CurrencyAmount;
-    expectedOut?: CurrencyAmount;
-    price: Price;
+    amount: string;
+    expectedIn?: string;
+    expectedOut?: string;
+    price: string;
     gasPrice: number;
     gasLimit: number;
     gasCost: number;
@@ -182,8 +182,7 @@ export namespace UniswapRoutes {
               const gasPrice = eth.getGasPrice();
               const gasLimit = ConfigManager.config.UNISWAP_GAS_LIMIT;
               if (req.body.side === 'BUY') {
-                const price = result.trade.executionPrice
-                  .invert();
+                const price = result.trade.executionPrice.invert();
 
                 const tx = await uniswap.executeTrade(
                   wallet,
@@ -196,9 +195,9 @@ export namespace UniswapRoutes {
                   latency: latency(initTime, Date.now()),
                   base: baseToken.address,
                   quote: quoteToken.address,
-                  amount: req.body.amount,
-                  expectedIn: result.expectedAmount,
-                  price: price,
+                  amount: req.body.amount.toString(),
+                  expectedIn: result.expectedAmount.toSignificant(8),
+                  price: price.toSignificant(8),
                   gasPrice: gasPrice,
                   gasLimit: gasLimit,
                   gasCost: gasPrice * gasLimit,
@@ -217,9 +216,9 @@ export namespace UniswapRoutes {
                   latency: latency(initTime, Date.now()),
                   base: baseToken.address,
                   quote: quoteToken.address,
-                  amount: req.body.amount,
-                  expectedOut: result.expectedAmount,
-                  price: price,
+                  amount: req.body.amount.toString(),
+                  expectedOut: result.expectedAmount.toSignificant(8),
+                  price: price.toSignificant(8),
                   gasPrice: gasPrice,
                   gasLimit,
                   gasCost: gasPrice * gasLimit,

@@ -1,6 +1,5 @@
 import fs from 'fs';
 import yaml from 'js-yaml';
-import { Percent } from '@uniswap/sdk';
 
 export namespace ConfigManager {
   interface Config {
@@ -19,7 +18,7 @@ export namespace ConfigManager {
     ETH_GAS_STATION_GAS_LEVEL: string;
     ETH_GAS_STATION_REFRESH_TIME: number;
     ETH_MANUAL_GAS_PRICE: number;
-    UNISWAP_ALLOWED_SLIPPAGE: Percent;
+    UNISWAP_ALLOWED_SLIPPAGE: [number, number];
     UNISWAP_GAS_LIMIT: number;
     UNISWAP_TTL: number;
     LOG_TO_STDOUT?: boolean;
